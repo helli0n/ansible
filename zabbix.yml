@@ -1,0 +1,47 @@
+---
+
+- hosts: hostname.com
+
+  vars:
+     zabbix_server:  'zabbix.com'
+
+  handlers:
+
+   - name: restart zabbix-agent
+     service: name=zabbix-agent state=restarted
+
+
+  tasks:
+
+   - name: repo
+     copy: src=/etc/ansible/files/repos/zabbix.repo
+           dest=/etc/yum.repos.d/
+           owner=root group=root mode=0644
+     when: ansible_distribution == 'CentOS'
+     tags:
+       - repo
+
+   - rpm_key: state=present key=http://repo.zabbix.com/RPM-GPG-KEY-ZABBIX
+     tags:
+       - repo
+       - zabbix
+
+   - name: zabbix
+     yum: name={{ item }} state=latest
+     with_items:
+       - zabbix-agent
+
+
+     when: ansible_distribution == 'CentOS'
+
+
+   - lineinfile:
+       dest=/etc/zabbix/zabbix_agentd.conf
+       backrefs=yes
+       regexp=^Server=
+       line=Server={{ zabbix_server }}
+   - replace: dest=/etc/zabbix/zabbix_agentd.conf regexp='Hostname\=Zabbix\sserver' replace='Hostname={{ inventory_hostname }}'
+     notify:
+       - restart zabbix-agent
+
+   - service: name=zabbix-agent enabled=yes
