@@ -1,0 +1,21 @@
+---
+- hosts: all
+  sudo: yes 
+  vars:
+    ntp_servers:
+    - ntp.com
+  tasks:
+  - name: ensure ntp is at the latest version
+    yum: pkg=ntp state=latest
+  - name: write the ntp config file
+    template: src=files/ntp.conf.j2 dest=/etc/ntp.conf
+    notify:
+    - restart ntpd
+  - name: ensure ntpd is running
+    service: name=ntpd state=started
+  - name: be sure ntpd is running and enabled
+    service: name=ntpd state=running enabled=yes
+  handlers:
+  - name: restart ntpd
+    service: name=ntpd state=restarted
+  

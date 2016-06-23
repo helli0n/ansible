@@ -14,7 +14,7 @@
   tasks:
 
    - name: repo
-     copy: src=/etc/ansible/files/repos/zabbix.repo
+     copy: src=files/repos/zabbix.repo
            dest=/etc/yum.repos.d/
            owner=root group=root mode=0644
      when: ansible_distribution == 'CentOS'
