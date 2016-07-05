@@ -1,0 +1,28 @@
+---
+
+- hosts: localhost
+  tasks:
+    - name: Create a new host or update an existing host's info
+      local_action:
+        module: zabbix_host
+        server_url: @url@
+        login_user: @user@
+        login_password: @password@
+        host_name: "{{ item.name }}"
+        host_groups:
+          - "Group1"
+        link_templates:
+          - "Template1"
+        status: enabled
+        state: present
+    inventory_mode: automatic
+        interfaces:
+          - type: 1
+            main: 1
+            useip: 1
+            ip: "{{ item.ip }}"
+            dns: ""
+            port: 10050
+      with_items:
+         - { name: '@host_name@', ip: '@IP@'}
+         - { name: '@host_name@', ip: '@IP@'}
