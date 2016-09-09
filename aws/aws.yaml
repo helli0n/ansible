@@ -1,0 +1,32 @@
+---
+
+- hosts: localhost
+  connection: local
+  vars:
+     task_def: "{{ task_def }}"
+     aws_acc_key: "{{ aws_acc_key }}"
+     aws_key: "{{ aws_key }}"
+     cluster_name: "{{ cluster_name }}"
+
+  tasks:
+    - name: Start a task
+      ecs_task:
+          cluster: "{{ cluster_name }}"
+          aws_access_key: "{{ aws_acc_key }}" 
+          aws_secret_key: "{{ aws_key }}"
+          operation: run
+          task_definition: "{{ task_def }}"
+          count: 1
+          started_by: ansible_user
+      register: task_output
+    - name: Put the output into the json
+      set_fact:
+        json: "{{ task_output }}"
+      register: store_facts
+    - debug: msg="{{ store_facts }}"
+    - set_fact: tid="{{ store_facts.ansible_facts.json.task[0].taskArn }}"
+    - debug: msg="{{ store_facts.ansible_facts.json.task[0].taskArn }}"
+    - name: ENV
+      shell: echo {{ tid }} > env1
+      register: result
+    - debug: var=result

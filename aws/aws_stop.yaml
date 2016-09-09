@@ -1,0 +1,21 @@
+---
+
+- hosts: localhost
+  connection: local
+  vars:
+     task_def: "{{ task_def }}"
+     task_id: "{{ task_id }}"
+     aws_acc_key: "{{ aws_acc_key }}"
+     aws_key: "{{ aws_key }}"
+     cluster_name: "{{ cluster_name }}"
+  tasks:
+    - name: Start a task
+      ecs_task:
+          cluster: "{{ cluster_name }}"
+          aws_access_key: "{{ aws_acc_key }
+          operation: stop
+          task_definition: "{{ task_def }}"
+          task: "{{ task_id }}"
+          started_by: ansible_user
+      register: task_output
+    - debug: msg="Revision {{task_output}}"
