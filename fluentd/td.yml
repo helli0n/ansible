@@ -1,0 +1,41 @@
+---
+
+- hosts: all
+  sudo: yes
+  
+  vars:
+    elastic_ip:  '{{ esip |default("10.1.1.10") }}'
+  
+  tasks:
+    - name: repo
+      copy: src=td.repo
+            dest=/etc/yum.repos.d/
+            owner=root group=root mode=0644
+      when: ansible_distribution == 'CentOS'
+    - name: install td-agent
+      yum: name=td-agent state=latest
+    - name: copy config td.agent to /etc/td-agent
+      template:
+          src=td-agent.conf.j2
+          dest=/etc/td-agent/td-agent.conf
+          backup=yes
+    - name: td-agent-gem install fluent-plugin-elasicsearch
+      command: td-agent-gem install fluent-plugin-elasticsearch
+    - name: TD_AGENT_USER=td-agent to root
+      lineinfile:
+          dest=/etc/init.d/td-agent
+          backrefs=yes
+          regexp=^TD_AGENT_USER=
+          line=TD_AGENT_USER=root
+    - name: TD_AGENT_GROUP=td-agent to wheel
+      lineinfile:
+          dest=/etc/init.d/td-agent
+          backrefs=yes
+          regexp=^TD_AGENT_GROUP=
+          line=TD_AGENT_GROUP=wheel
+    - name: Service start
+      service:
+        name=td-agent
+        state=restarted
+        enabled=yes
+        

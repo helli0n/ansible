@@ -1,0 +1,56 @@
+<source>
+  @type forward
+  port 24224
+</source>
+
+<source>
+  @type http
+  port 9880
+</source>
+
+<source>
+  @type monitor_agent
+  port 24220
+</source>
+
+<source>
+  @type debug_agent
+  port 24230
+</source>
+
+<match debug.*>
+  @type stdout
+</match>
+
+<source>
+  type tail
+  path /var/log/secure
+  format multiline
+  format_firstline /\w+ \d{2} \d{2}:\d{2}:\d{2}/
+  format1 /^(?<time>\w+ \d{2} \d{2}:\d{2}:\d{2}) +(?<hostname>\w+) +(?<pid>\w.*):(?<message>.*)/
+  tag {{ ansible_nodename }}.secure
+</source>
+
+<source>
+  type tail
+  path /var/log/messages
+  format multiline
+  format_firstline /\w+ \d{2} \d{2}:\d{2}:\d{2}/
+  format1 /^(?<time>\w+ \d{2} \d{2}:\d{2}:\d{2}) +(?<hostname>\w+) +(?<pid>\w.*):(?<message>.*)/
+  tag {{ ansible_nodename }}.messages
+</source>
+
+
+<match {{ ansible_nodename }}.** >
+  type elasticsearch
+  host {{ elastic_ip }}
+  port 9200
+  index_name via_fluentd
+  type_name via_fluentd
+  logstash_format true
+  logstash_prefix fluentd
+  utc_index false
+  request_timeout 5s
+  include_tag_key true
+</match>
+
